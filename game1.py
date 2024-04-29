@@ -107,7 +107,7 @@ class Game:
     def reset_game(self):
         # Reset the game state
         if not self.customPoints:
-            self.points = [Point(self.screen.get_width(), self.screen.get_height()) for _ in range(total_points)]
+            self.points = [Point(self.screen.get_width(), self.screen.get_height()) for _ in range(self.total_points)]
         else:
             self.points = []
         self.lines = [Line()]
@@ -183,7 +183,7 @@ class Game:
                 if len(self.lines) == self.total_points and self.lines[-1].end == self.poly_points[0]:
                     self.mode = "guard" # polygonize over
                     print("Converting self.poly_points to all objects of call Point")
-                    self.poly_points = [Point(x=pos.x, y=pos.y) for pos in self.poly_points]
+                    self.convert_poly_points()
                 else:   # start a new line only if process not yet over
                     self.lines.append(Line(start=click_pos))    # adds new line with current line ending point as start
                     self.poly_points.append(click_pos)
@@ -365,6 +365,23 @@ class Game:
             self.guard_lines.append(Line(self.poly_points[ai].pos, self.poly_points[bi].pos))
         return is_diagonal  # one of the inCone tests can be removed (Slide 25 module 11)
 
+    def areas_under_segment(self,p1:Point,p2:Point):
+        return (p2.pos.y+p1.pos.y)*(p2.pos.x-p1.pos.x)
+
+    def convert_poly_points(self):
+        self.poly_points = [Point(x=pos.x, y=pos.y) for pos in self.poly_points]
+        # Check if polygoin is clockwise or anticlockwise
+        # ref - https://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+        # uses the areas under segments.
+        area_sum = self.areas_under_segment(self.poly_points[0],self.poly_points[-1])
+        for i in range(len(self.poly_points)-1):
+            area_sum += self.areas_under_segment(self.poly_points[i+1],self.poly_points[i])
+        print("Area = ", area_sum)
+        if area_sum<0:
+            print("Reversed because anticlockwise")
+            self.poly_points.reverse()
+
+
     def update(self):
         pass
 
@@ -410,5 +427,5 @@ class Game:
         pygame.quit()
 
 if __name__ == "__main__":
-    game = Game(customPoints=True, total_points=10) #ONE PROBLEM: Make sure points are in clockwise order. Otherwise it breaks
+    game = Game(customPoints=True, total_points=8)
     game.run()
