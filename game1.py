@@ -427,5 +427,5 @@ class Game:
         pygame.quit()
 
 if __name__ == "__main__":
-    game = Game(customPoints=True, total_points=8)
+    game = Game(customPoints=True, total_points=11)
     game.run()
